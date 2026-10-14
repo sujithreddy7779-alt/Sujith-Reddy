@@ -3,11 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Sujith Reddy, M.S. Construction Management and Technology student at Arizona State University. Resume, experience and contact details.">
+<meta name="description" content="M.S. Construction Management and Technology, Arizona State University. Resume, experience and contact details.">
 <meta name="theme-color" content="#080D0A">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sujith Reddy">
+<meta property="og:description" content="M.S. Construction Management and Technology, Arizona State University">
+<meta property="og:url" content="https://sujithreddy7779-alt.github.io/Sujith-Reddy/">
+<meta property="og:image" content="https://sujithreddy7779-alt.github.io/Sujith-Reddy/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sujith Reddy">
+<meta name="twitter:description" content="M.S. Construction Management and Technology, Arizona State University">
+<meta name="twitter:image" content="https://sujithreddy7779-alt.github.io/Sujith-Reddy/share.jpg">
 <style>html,body{margin:0}</style>
 <title>Sujith Reddy</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one fixed full-bleed waterfall photo behind everything. It starts sharp and bright, then blurs, darkens and pans from the canopy down to the cascade as the page scrolls, with all text overlaid. The portrait fills the left third of the hero, then shrinks into the header's top-left corner. Palette is sampled from the photo: lime canopy, slate rock, white water. */
 :root {
@@ -98,7 +109,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .hero-text::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse 80% 60% at 30% 50%, rgba(4, 8, 5, 0.6), rgba(4, 8, 5, 0) 75%); pointer-events: none; }
 .hero h1 { font-size: clamp(2.6rem, 7vw, 4.6rem); font-weight: 800; letter-spacing: -0.02em; }
-.tagline { font-size: 1.2rem; max-width: 34ch; }
+.tagline { font-size: 1.2rem; max-width: 40ch; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; align-items: center; }
 .btn {
   font: inherit; font-weight: 600; font-size: 1rem; text-shadow: none;
@@ -110,6 +121,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 .btn.ghost { background: rgba(6, 11, 8, 0.6); color: var(--accent); }
 .btn.ghost:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .note { font-size: 0.9rem; color: var(--muted); }
+.glance { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 16px; border-top: 1px solid var(--line); width: 100%; max-width: 40ch; }
+.glance li { position: relative; padding-left: 20px; font-size: 1rem; }
+.glance li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 9px; height: 2px; background: var(--accent); }
 
 /* Scroll-linked portrait */
 .photo-fly {
@@ -141,6 +155,11 @@ section { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
 .entry .where { color: var(--muted); margin-top: 2px; }
 .entry ul.points { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; max-width: 65ch; }
 .points li { position: relative; padding-left: 20px; }
+/* Experience timeline */
+#experience .entry { position: relative; padding-left: 34px; }
+#experience .entry::before { content: ""; position: absolute; left: 5px; top: 20px; bottom: -32px; width: 2px; background: var(--moss); opacity: 0.55; }
+#experience .entry:last-child::before { display: none; }
+#experience .entry::after { content: ""; position: absolute; left: 0; top: 9px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(168, 224, 74, 0.18); }
 .points li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 9px; height: 2px; background: var(--accent); }
 .course-line { margin-top: 12px; max-width: 65ch; color: var(--muted); }
 .course-line strong { color: var(--ink); font-weight: 600; }
@@ -161,6 +180,10 @@ section { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
 .copy { font: inherit; font-size: 0.85rem; color: var(--accent); background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; cursor: pointer; text-shadow: none; }
 .copy:hover { background: var(--ink); color: var(--bg); }
 
+.signoff { border-top: 1px solid var(--line); padding-block: 48px 8px; display: flex; flex-direction: column; gap: 18px; align-items: flex-start; text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
+.signoff::before { content: ""; width: 44px; height: 3px; background: var(--accent); }
+.signoff p { font-family: var(--font-body); font-style: italic; font-weight: 400; font-size: clamp(1.05rem, 2.6vw, 1.5rem); line-height: 1.35; max-width: none; text-wrap: balance; }
+@media (min-width: 600px) { .signoff p { white-space: nowrap; } }
 .foot { border-top: 1px solid var(--line); padding-block: 28px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
 
 @media (max-width: 760px) {
@@ -212,11 +235,17 @@ section { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
     <div class="hero-text">
       <p class="mono">Tempe, Arizona &middot; 33.43&deg; N, 111.94&deg; W</p>
       <h1>Sujith Reddy</h1>
-      <p class="tagline">M.S. Construction Management and Technology at Arizona State University. Looking for a co-op or internship.</p>
+      <p class="tagline">M.S. Construction Management and Technology, Arizona State University</p>
       <div class="actions">
         <a class="btn" href="Sujith_Reddy_Resume.pdf" download="Sujith_Reddy_Resume.pdf">Download resume</a>
         <a class="btn ghost" href="#contact">Get in touch</a>
       </div>
+      <ul class="glance">
+        <li>B.E. in Civil Engineering</li>
+        <li>LEED Green Associate</li>
+        <li>Procore Project Management Certified</li>
+        <li>Graduating May 2027</li>
+      </ul>
     </div>
   </div>
 
@@ -226,8 +255,10 @@ section { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
       <div class="sec">
         <h2>About</h2>
         <div class="sec-body">
-          <p class="lead">Construction Management graduate student at ASU with hands-on experience in project coordination, structural design, QA/QC, and construction documentation. My coursework covers cost estimation, subcontractor selection, bidding, and bid leveling. I work in Procore, Bluebeam, Revit, and InEight.</p>
-          <p class="lead">I am looking for a co-op or internship where I can apply what I have learned on real projects and grow from preconstruction through closeout.</p>
+          <p class="lead">Long before I knew what a structural load was, I knew the sound of a job site. Construction runs in my family, and I grew up surrounded by words I did not understand and a stubborn need to learn what each one meant. That curiosity led me to civil engineering.</p>
+          <p class="lead">Civil engineering gave me the answers, from how structures carry their loads and how concrete is designed to how the ground beneath a building decides what can stand on it. At DesignTree Service Consultants, those ideas came off the page. I worked on the structural design of high-rise residential buildings and walked sites to check that what was built matched what was drawn. Over time, I realized that what held my attention most was the coordination, the way many people and decisions must line up for a project to come together.</p>
+          <p class="lead">That realization led me to construction management. In my M.S. in Construction Management and Technology at Arizona State University, I have learned to estimate, bid, level bids, and select trade partners, working in Procore, Bluebeam, Revit, and InEight. I also hold the LEED Green Associate credential and Procore Project Management certification.</p>
+          <p class="lead">Now, I am looking for a co-op or internship where I can apply all of this on real projects and keep learning from preconstruction through closeout.</p>
         </div>
       </div>
     </section>
@@ -372,8 +403,8 @@ section { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
             </div>
             <div class="contact-row">
               <span class="mono">Phone</span>
-              <a class="val" id="val-phone" href="tel:6027931019">6027931019</a>
-              <button class="copy" type="button" data-copy="6027931019" data-target="val-phone">Copy</button>
+              <a class="val" id="val-phone" href="tel:+16027931019">+1 (602) 793-1019</a>
+              <button class="copy" type="button" data-copy="+1 (602) 793-1019" data-target="val-phone">Copy</button>
             </div>
             <div class="contact-row">
               <span class="mono">Location</span>
@@ -392,6 +423,10 @@ section { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5); }
         </div>
       </div>
     </section>
+
+    <div class="signoff">
+      <p>Thank you for reading my story. I would welcome the chance to talk.</p>
+    </div>
 
     <footer class="foot">
       <p class="mono">Sujith Reddy</p>
