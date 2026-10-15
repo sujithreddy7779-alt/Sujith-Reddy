@@ -141,6 +141,33 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .photo-fly img { position: absolute; left: 0; top: 0; width: 0; height: 0; max-width: none; display: block; user-select: none; -webkit-user-drag: none; will-change: transform; }
 
+/* Native scroll-driven animations: the browser ties these to the scroll position itself, with no script running on every frame.
+   Geometry values (--fx0 etc.) are measured once by script. Older browsers use the script fallback instead. */
+@keyframes fly-box {
+  from { transform: translate3d(var(--fx0), var(--fy0), 0); width: var(--fw0); height: var(--fh0); border-radius: 0%; }
+  to   { transform: translate3d(var(--fx1), var(--fy1), 0); width: var(--fw1); height: var(--fh1); border-radius: 50%; }
+}
+@keyframes fly-img {
+  from { width: var(--iw0); height: var(--ih0); transform: translate3d(var(--ix0), var(--iy0), 0); }
+  to   { width: var(--iw1); height: var(--ih1); transform: translate3d(var(--ix1), var(--iy1), 0); }
+}
+@keyframes bg-pan {
+  from { transform: translate3d(var(--bgx), var(--bgy0), 0); }
+  to   { transform: translate3d(var(--bgx), var(--bgy1), 0); }
+}
+@keyframes bg-blur-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scrim-dark { from { opacity: 0.42; } to { opacity: 0.8; } }
+@supports (animation-timeline: scroll()) {
+  html.native .photo-fly { animation: fly-box 1s cubic-bezier(0.42, 0, 0.58, 1) both; animation-timeline: scroll(root block); animation-range: 0px var(--dist, 400px); }
+  html.native .photo-fly img { animation: fly-img 1s cubic-bezier(0.42, 0, 0.58, 1) both; animation-timeline: scroll(root block); animation-range: 0px var(--dist, 400px); }
+  html.native #bg-inner { animation: bg-pan 1s linear both; animation-timeline: scroll(root block); }
+  html.native #bg-blur { animation: bg-blur-in 1s cubic-bezier(0.42, 0, 0.58, 1) both; animation-timeline: scroll(root block); animation-range: 0px var(--bgdist, 600px); }
+  html.native .bg .scrim { animation: scrim-dark 1s cubic-bezier(0.42, 0, 0.58, 1) both; animation-timeline: scroll(root block); animation-range: 0px var(--bgdist, 600px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.native .photo-fly, html.native .photo-fly img { animation-range: 0px 80px; }
+}
+
 /* Sections */
 section { padding-block: 56px; border-top: 1px solid var(--line); scroll-margin-top: 72px; }
 .sec { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 16px 40px; }
@@ -450,8 +477,10 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
 });
 
 /* Scroll effects: the portrait shrinks into the header avatar, and the background photo cross-fades to a blurred copy, darkens and pans.
-   Sizes are measured once (and on resize); each scroll frame only changes transforms and opacity. */
+   Browsers that support scroll-driven CSS animations run them natively (smoothest). Others use the script fallback below.
+   Sizes are measured once and again only when the window really changes, not when a phone's address bar slides in or out. */
 (function () {
+  var root = document.documentElement;
   var fly = document.getElementById('profile-photo');
   var spacer = document.getElementById('photo-start');
   var slot = document.getElementById('avatar-slot');
@@ -463,13 +492,33 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
   var scrim = document.getElementById('bg-scrim');
   var BW = +bgInner.getAttribute('data-w'), BH = +bgInner.getAttribute('data-h');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var queued = false, lastSy = -1, g = null;
+  var native = !!(window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()'));
+  if (native) root.classList.add('native');
+  var probe = document.createElement('div');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
+  document.body.appendChild(probe);
+  var queued = false, lastSy = -1, g = null, lastW = 0, lastH = 0;
   function lerp(a, b, t) { return a + (b - a) * t; }
   function ease(p) { return p * p * (3 - 2 * p); }
   function clamp01(v) { return Math.min(1, Math.max(0, v)); }
+  function px(v) { return (Math.round(v * 100) / 100) + 'px'; }
+
+  function imgGeom(w, h, k) {
+    var ratio = IH / IW;
+    var r0 = Math.max(1, (g.sh / g.sw) / ratio) * 1.003;
+    var rr = r0 * Math.pow(ZOOM_END / r0, k);
+    rr = Math.max(rr, Math.max(1, (h / w) / ratio) * 1.003);
+    var dw = rr * w, dh = dw * ratio;
+    var left = lerp(START.x, 0.5, k) * w - FOCUS.x * dw;
+    var top = lerp(START.y, 0.5, k) * h - FOCUS.y * dh;
+    return { dw: dw, dh: dh, left: Math.min(0, Math.max(w - dw, left)), top: Math.min(0, Math.max(h - dh, top)) };
+  }
 
   function measure() {
-    var vh = window.innerHeight, vw = window.innerWidth;
+    var vw = window.innerWidth;
+    var vh = probe.getBoundingClientRect().height || window.innerHeight;
+    lastW = vw; lastH = window.innerHeight;
     var sy = window.pageYOffset || document.documentElement.scrollTop || 0;
     var r = spacer.getBoundingClientRect();
     var e = slot.getBoundingClientRect();
@@ -485,23 +534,20 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     };
     bgInner.style.width = W + 'px';
     bgInner.style.height = H + 'px';
-    lastSy = -1;
-    request();
-  }
-
-  function placeImage(w, h, k) {
-    var ratio = IH / IW;
-    var r0 = Math.max(1, (g.sh / g.sw) / ratio) * 1.003;
-    var rr = r0 * Math.pow(ZOOM_END / r0, k);
-    rr = Math.max(rr, Math.max(1, (h / w) / ratio) * 1.003);
-    var dw = rr * w, dh = dw * ratio;
-    var left = lerp(START.x, 0.5, k) * w - FOCUS.x * dw;
-    var top = lerp(START.y, 0.5, k) * h - FOCUS.y * dh;
-    left = Math.min(0, Math.max(w - dw, left));
-    top = Math.min(0, Math.max(h - dh, top));
-    img.style.width = dw + 'px';
-    img.style.height = dh + 'px';
-    img.style.transform = 'translate3d(' + left + 'px,' + top + 'px,0)';
+    if (native) {
+      var i0 = imgGeom(Math.max(1, g.sw - 3), Math.max(1, g.sh - 3), 0);
+      var i1 = imgGeom(Math.max(1, g.ew - 3), Math.max(1, g.eh - 3), 1);
+      var s = root.style;
+      s.setProperty('--fx0', px(g.sl)); s.setProperty('--fy0', px(g.st)); s.setProperty('--fw0', px(g.sw)); s.setProperty('--fh0', px(g.sh));
+      s.setProperty('--fx1', px(g.el)); s.setProperty('--fy1', px(g.et)); s.setProperty('--fw1', px(g.ew)); s.setProperty('--fh1', px(g.eh));
+      s.setProperty('--iw0', px(i0.dw)); s.setProperty('--ih0', px(i0.dh)); s.setProperty('--ix0', px(i0.left)); s.setProperty('--iy0', px(i0.top));
+      s.setProperty('--iw1', px(i1.dw)); s.setProperty('--ih1', px(i1.dh)); s.setProperty('--ix1', px(i1.left)); s.setProperty('--iy1', px(i1.top));
+      s.setProperty('--dist', px(g.dist)); s.setProperty('--bgdist', px(g.vh * 0.8));
+      s.setProperty('--bgx', px(g.bgX)); s.setProperty('--bgy0', px(-0.18 * g.bgRange)); s.setProperty('--bgy1', px(-0.8 * g.bgRange));
+    } else {
+      lastSy = -1;
+      request();
+    }
   }
 
   function update() {
@@ -510,7 +556,6 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     var sy = window.pageYOffset || document.documentElement.scrollTop || 0;
     if (sy === lastSy) return;
     lastSy = sy;
-
     var p = clamp01(sy / g.dist);
     if (reduce) p = sy > 80 ? 1 : 0;
     var k = ease(p);
@@ -519,8 +564,10 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     fly.style.width = fw + 'px';
     fly.style.height = fh + 'px';
     fly.style.borderRadius = (k * 50) + '%';
-    placeImage(Math.max(1, fw - 3), Math.max(1, fh - 3), k);
-
+    var ig = imgGeom(Math.max(1, fw - 3), Math.max(1, fh - 3), k);
+    img.style.width = ig.dw + 'px';
+    img.style.height = ig.dh + 'px';
+    img.style.transform = 'translate3d(' + ig.left + 'px,' + ig.top + 'px,0)';
     var b = ease(clamp01(sy / (g.vh * 0.8)));
     var pg = g.docRange > 0 ? clamp01(sy / g.docRange) : 0;
     bgInner.style.transform = 'translate3d(' + g.bgX + 'px,' + (-(0.18 + 0.62 * pg) * g.bgRange) + 'px,0)';
@@ -528,10 +575,15 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     scrim.style.opacity = (0.42 + 0.38 * b).toFixed(3);
   }
 
-  function request() { if (!queued) { queued = true; window.requestAnimationFrame(update); } }
-  window.addEventListener('scroll', request, { passive: true });
-  window.addEventListener('resize', measure);
-  window.addEventListener('orientationchange', measure);
+  function request() { if (!native && !queued) { queued = true; window.requestAnimationFrame(update); } }
+  function onResize() {
+    // A phone's address bar sliding in or out changes only the height a little; ignore that.
+    if (window.innerWidth === lastW && Math.abs(window.innerHeight - lastH) < 160) return;
+    measure();
+  }
+  if (!native) window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', function () { setTimeout(measure, 250); });
   window.addEventListener('load', measure);
   img.addEventListener('load', measure);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
